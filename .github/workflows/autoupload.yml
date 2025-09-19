@@ -51,23 +51,41 @@ jobs:
       - id: anaconda 
         name: Set Package Name, Version and Label
         run: |
-          [ -n "$COMMIT_TYPE" ] && COMMIT_TYPE="-$COMMIT_TYPE"
-          echo $COMMIT_VERSION
-          [[ $COMMIT_VERSION == *-* ]] && ANACONDA_LABEL=${COMMIT_VERSION#*-} || ANACONDA_LABEL=""
+          # Preserve existing COMMIT_TYPE semantics: "dev" when not a tag
+          # (git step already wrote COMMIT_TYPE to env/output)
 
-          ANACONDA_PACKAGE=$(basename `git rev-parse --show-toplevel` | sed 's,-feedstock,,g')
-          echo "ANACONDA_PACKAGE=$ANACONDA_PACKAGE" >> $GITHUB_ENV
-          echo "ANACONDA_PACKAGE=$ANACONDA_PACKAGE" >> $GITHUB_OUTPUT
+          RAW_VERSION="${COMMIT_VERSION:-0.0.0}"
+          RAW_VERSION="${RAW_VERSION#v}"             # strip optional leading 'v'
+
+          # Split into base version and optional label (part after first '-')
+          if [[ "$RAW_VERSION" == *-* ]]; then
+            BASE_VERSION="${RAW_VERSION%%-*}"
+            SPLIT_LABEL="${RAW_VERSION#*-}"
+          else
+            BASE_VERSION="$RAW_VERSION"
+            SPLIT_LABEL=""
+          fi
+
+          # Package name (unchanged)
+          ANACONDA_PACKAGE=$(basename "$(git rev-parse --show-toplevel)" | sed 's,-feedstock,,g')
+          echo "ANACONDA_PACKAGE=$ANACONDA_PACKAGE" >> "$GITHUB_ENV"
+          echo "ANACONDA_PACKAGE=$ANACONDA_PACKAGE" >> "$GITHUB_OUTPUT"
+
+          # Label: prefer split suffix; default to "main"
+          ANACONDA_LABEL="${SPLIT_LABEL:-main}"
+          echo "ANACONDA_LABEL=$ANACONDA_LABEL" >> "$GITHUB_ENV"
+          echo "ANACONDA_LABEL=$ANACONDA_LABEL" >> "$GITHUB_OUTPUT"
+
+          # Version: ONLY the base X.Y.Z (no label). Append ".dev" for non-tag builds.
+          # git step set COMMIT_TYPE to "dev" when not a tag; empty otherwise.
+          if [[ -n "$COMMIT_TYPE" ]]; then
+            ANACONDA_VERSION="${BASE_VERSION}.dev"
+          else
+            ANACONDA_VERSION="${BASE_VERSION}"
+          fi
+          echo "ANACONDA_VERSION=$ANACONDA_VERSION" >> "$GITHUB_ENV"
+          echo "ANACONDA_VERSION=$ANACONDA_VERSION" >> "$GITHUB_OUTPUT"
           
-          ANACONDA_LABEL=${ANACONDA_LABEL:-main}
-          echo "ANACONDA_LABEL=$ANACONDA_LABEL" >> $GITHUB_ENV
-          echo "ANACONDA_LABEL=$ANACONDA_LABEL" >> $GITHUB_OUTPUT
-
-          ANACONDA_VERSION=${COMMIT_VERSION//-/.}
-          ANACONDA_VERSION=${ANACONDA_VERSION:-0.0.0}${COMMIT_TYPE//-/.}
-          echo "ANACONDA_VERSION=$ANACONDA_VERSION" >> $GITHUB_ENV
-          echo "ANACONDA_VERSION=$ANACONDA_VERSION" >> $GITHUB_OUTPUT
-
       - name: Print GitHub Context as JSON 
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
