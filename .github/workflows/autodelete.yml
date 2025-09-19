@@ -25,20 +25,37 @@ jobs:
           echo "Checked out commit: \`$(git rev-parse HEAD)\`" >> $GITHUB_STEP_SUMMARY
           echo "Branch: \`${GITHUB_REF}\`" >> $GITHUB_STEP_SUMMARY
 
-          COMMIT_VERSION="${REF_TAG:-0.0.0}"
+          # Derive version string from ref; strip refs/*/ and optional leading 'v'
+          RAW_VERSION="${REF_TAG##*/}"
+          RAW_VERSION="${RAW_VERSION#v}"
+          COMMIT_VERSION="${RAW_VERSION:-0.0.0}"
+
+          # Split {version}-{label}
+          if [[ "$COMMIT_VERSION" == *-* ]]; then
+            BASE_VERSION="${COMMIT_VERSION%%-*}"
+            SPLIT_LABEL="${COMMIT_VERSION#*-}"
+          else
+            BASE_VERSION="$COMMIT_VERSION"
+            SPLIT_LABEL=""
+          fi
 
           ANACONDA_PACKAGE=$(basename `git rev-parse --show-toplevel` | sed 's,-feedstock,,g')
           echo "ANACONDA_PACKAGE=$ANACONDA_PACKAGE" >> $GITHUB_ENV
-          ANACONDA_LABEL=${COMMIT_VERSION#*-}
-          echo "ANACONDA_LABEL=${ANACONDA_LABEL:-main}" >> $GITHUB_ENV
-          ANACONDA_VERSION=${COMMIT_VERSION}
-          echo "ANACONDA_VERSION=${ANACONDA_VERSION//-/.}" >> $GITHUB_ENV
+
+          # Prefer tag suffix as label; fallback to ref name; default to main
+          ANACONDA_LABEL="${SPLIT_LABEL:-$REF_NAME}"
+          ANACONDA_LABEL="${ANACONDA_LABEL:-main}"
+          echo "ANACONDA_LABEL=$ANACONDA_LABEL" >> $GITHUB_ENV
+
+          # Version is base X.Y.Z only (no label); keep dots as-is
+          ANACONDA_VERSION="$BASE_VERSION"
+          echo "ANACONDA_VERSION=$ANACONDA_VERSION" >> $GITHUB_ENV
 
           echo "## 🏷️ Set Package Name, Version, and Architecture." >> $GITHUB_STEP_SUMMARY
-          echo "- Anaconda Label: \`${ANACONDA_LABEL:-main}\`" >> $GITHUB_STEP_SUMMARY
+          echo "- Anaconda Label: \`${ANACONDA_LABEL}\`" >> $GITHUB_STEP_SUMMARY
           echo "- Package Name: \`$ANACONDA_PACKAGE\`" >> $GITHUB_STEP_SUMMARY
           echo "- Package Version: \`$ANACONDA_VERSION\`" >> $GITHUB_STEP_SUMMARY
-
+          
       - name: Print GitHub Context as JSON
         env:
           GITHUB_CONTEXT: ${{ toJson(github) }}
