@@ -5,7 +5,7 @@
     "4.2.1": "b576fffcfe147b9d2d2408738010c4bf3dbcd333870b048a9506c4bde61e2284"
 } %}
 
-{% set version = environ.get('COMMIT_VERSION', None) %}
+{% set version = environ.get('ANACONDA_VERSION', None) %}
 {% set version = version or versions.keys()|first %}
 {% set version = version|string %}
 
