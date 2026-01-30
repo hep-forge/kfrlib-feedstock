@@ -23,10 +23,13 @@ requirements:
     - {{ compiler('cxx') }}
     - {{ compiler('c') }}
     - clang
+    - clangxx
     - cmake
     - make
   host:
-    - clang
+    - libogg
+    - libflac
+    - boost
 
 about:
   home: "https://www.kfrlib.com"
