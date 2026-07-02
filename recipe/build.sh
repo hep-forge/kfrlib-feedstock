@@ -8,5 +8,6 @@ cmake -DKFR_ENABLE_CAPI_BUILD=TRUE -DCMAKE_POSITION_INDEPENDENT_CODE=ON \
       -DCMAKE_CXX_COMPILER=clang++ -DKFR_WITH_CLANG=OFF \
       -DCMAKE_INSTALL_PREFIX=$PREFIX ..
 
-make -j$(nproc)
+NPROC=$(nproc 2>/dev/null || sysctl -n hw.ncpu)
+make -j$NPROC
 make install
