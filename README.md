@@ -15,8 +15,8 @@ Fast, modern C++ DSP framework, FFT, Sample Rate Conversion, FIR/IIR/Biquad Filt
 
 | Architecture | Latest published |
 |--------------|------------------|
-| linux-amd64 (`linux-64`) | ✅ `7.0.1` |
-| linux-arm64 (`linux-aarch64`) | ✅ `7.0.1` |
+| linux-amd64 (`linux-64`) | ✅ `7.2.0` |
+| linux-arm64 (`linux-aarch64`) | ✅ `7.2.0` |
 
 _As of the last feedstock render; the badges above are live._
 
