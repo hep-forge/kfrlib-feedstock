@@ -13,7 +13,12 @@ Fast, modern C++ DSP framework, FFT, Sample Rate Conversion, FIR/IIR/Biquad Filt
 
 ## Architectures
 
-State per architecture: see the platforms badge above or [anaconda.org/hep-forge/kfrlib](https://anaconda.org/hep-forge/kfrlib).
+| Architecture | Latest published |
+|--------------|------------------|
+| linux-amd64 (`linux-64`) | ✅ `7.2.0` |
+| linux-arm64 (`linux-aarch64`) | ✅ `7.2.0` |
+
+_As of the last feedstock render; the badges above are live._
 
 
 ## Install
